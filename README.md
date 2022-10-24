@@ -1,10 +1,9 @@
 # AP Inventory for Cisco C9800 WLAN Controllers
 
-Version: v001
-Date: 24 oct 2022
-Auteurs: Jonathan RAMBEAU @rambo_fi
+Version: v001  
+Date: 24 oct 2022  
 
-## 1. Prerequisites
+## Prerequisites
 
 Python Libraries:
 ```python
