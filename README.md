@@ -1,10 +1,9 @@
 # AP Inventory for Cisco C9800 WLAN Controllers
 
-Version: v001
-Date: 24 oct 2022
-Auteurs: Jonathan RAMBEAU @rambo_fi
+Version: v001  
+Date: 24 oct 2022  
 
-## 1. Prerequisites
+## Prerequisites
 
 Python Libraries:
 ```python
@@ -14,7 +13,7 @@ pip install openpyxl
 
 On the 9800 controller, enable the RESTCONF feature:
 ```
-  configure terminal
-    ip http secure-server
-      restconf
+configure terminal
+  ip http secure-server
+    restconf
 ```
