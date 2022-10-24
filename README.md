@@ -17,3 +17,8 @@ configure terminal
     ip http secure-server
         restconf
 ```
+
+## Run the script
+
+```python
+python inventory_c9800_ap.py -user <user> -password <password> -wlc_ip <controller IP>
