@@ -14,7 +14,7 @@ pip install openpyxl
 
 On the 9800 controller, enable the RESTCONF feature:
 ```
-  configure terminal
+configure terminal
     ip http secure-server
-      restconf
+        restconf
 ```
