@@ -14,6 +14,7 @@ pip install openpyxl
 On the 9800 controller, enable the RESTCONF feature:
 ```
 configure terminal
+    aaa authorization exec default local 
     ip http secure-server
         restconf
 ```
