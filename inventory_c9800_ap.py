@@ -2,6 +2,7 @@ import logging
 from c9800 import C9800
 import argparse
 import pandas as pd
+import datetime
 
 ## Prerequisites
 ## pip install pandas
@@ -20,6 +21,9 @@ args=parser.parse_args()
 # Create an object of type C9800 and store it in the wlc variable
 wlc = C9800(args.wlc_ip, args.user, args.password)
 
+# Get hostname for export files
+wlc.get_hostname()
+
 # Call our wlc object and ask for the list of joined APs
 aps = wlc.get_joined_aps()
 
@@ -27,7 +31,8 @@ aps = wlc.get_joined_aps()
 df = pd.DataFrame(aps).T
 
 # Convert into Excel and CSV
-df.to_excel("aps.xlsx", index=False)
-df.to_csv("aps.csv", index=False)
+filename = wlc.controller_hostname + "_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + "_AP-Inventory"
+df.to_excel(filename+".xlsx", index=False)
+df.to_csv(filename+".csv", index=False)
 
 print("Done!")

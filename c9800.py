@@ -16,6 +16,7 @@ class C9800:
         self.controller_ip = ip
         self.controller_user = user
         self.controller_password = password
+        self.controller_hostname = ""
         self.controller_auth = HTTPBasicAuth(user, password)
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         self.ap_list = {}
@@ -47,6 +48,20 @@ class C9800:
             logging.info(f"Success!")
         return response
 
+
+    def get_hostname(self):
+        resource_hostname = "Cisco-IOS-XE-native:native/hostname"
+        response_hostname = self.__execute_REST(method="GET", resource=resource_hostname)
+        try:
+            logging.info(f"Parsing Hostname JSON")
+            json_payload_hostname = response_hostname.json()      
+            self.controller_hostname = json_payload_hostname['Cisco-IOS-XE-native:hostname']
+            logging.info(f"Hostname: {self.controller_hostname}")
+        except ValueError as err:
+            logging.info(f"No data was returned")
+        except Exception as err:
+            logging.exception(f"Other error: {err}")
+        
 
     def get_joined_aps(self):
         resource_capwap = "Cisco-IOS-XE-wireless-access-point-oper:access-point-oper-data/capwap-data"
