@@ -9,6 +9,7 @@ from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from netaddr import EUI, mac_unix_expanded
 import logging
+import sys
 
 
 class C9800:
@@ -42,6 +43,7 @@ class C9800:
             response.raise_for_status()
         except HTTPError as http_err:
             logging.error(f'HTTP error occurred: {http_err}')
+            sys.exit()
         except Exception as err:
             logging.exception(f'Other error occurred: {err}')
         else:

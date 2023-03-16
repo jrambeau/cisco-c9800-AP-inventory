@@ -1,14 +1,13 @@
 # AP Inventory for Cisco C9800 WLAN Controllers
 
-Version: v001  
-Date: 24 oct 2022  
+Version: v002
+Date: 24 mar 2023  
 
 ## Prerequisites
 
-Python Libraries:
+Install required Python Libraries:
 ```python
-pip install pandas
-pip install openpyxl
+pip install -r requirements.txt
 ```
 
 On the 9800 controller, enable the RESTCONF feature:
@@ -22,4 +21,7 @@ configure terminal
 ## Run the script
 
 ```python
-python inventory_c9800_ap.py -user <user> -password <password> -wlc_ip <controller IP>
+python inventory_c9800_ap.py
+```
+
+You will be prompted for username and password.
