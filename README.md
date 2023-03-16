@@ -18,6 +18,8 @@ configure terminal
         restconf
 ```
 
+Type in the IP address of the controllers in file devices_ip_list.txt
+
 ## Run the script
 
 ```python
