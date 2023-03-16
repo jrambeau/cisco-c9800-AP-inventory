@@ -1,9 +1,5 @@
 # AP Inventory for Cisco C9800 WLAN Controllers
 
-Version: v002
-
-Date: 24 mar 2023  
-
 ## Prerequisites
 
 Install required Python Libraries:
@@ -19,7 +15,11 @@ configure terminal
         restconf
 ```
 
-Type in the IP address of the controller or controllers in file devices_ip_list.txt
+Type in the IP address of the controller or controllers in file **devices_ip_list.txt**
+```sh
+1.2.3.4
+5.6.7.8
+```
 
 ## Run the script
 
