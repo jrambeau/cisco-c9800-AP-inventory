@@ -5,6 +5,7 @@ import pandas as pd
 import datetime
 import getpass
 import openpyxl
+import os
 
 ## Set logging level and format
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s (%(levelname)s) %(message)s")
@@ -33,15 +34,21 @@ for wlc in devices:
     # Get hostname for export files
     wlc.get_hostname()
 
-    # Call our wlc object and ask for the list of joined APs
+    logging.info(f"Dealing with controller {wlc.controller_hostname}")
     aps = wlc.get_joined_aps()
 
-    # Convert AP dictionnary into dataframe
-    df = pd.DataFrame(aps).T
+    if aps!=0: # Check if the controller actually has APs joined. If not, we do not create the inventory files.
+        # Convert AP dictionnary into dataframe
+        df = pd.DataFrame(aps).T
 
-    # Convert into Excel and CSV
-    filename = wlc.controller_hostname + "_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + "_AP-Inventory"
-    df.to_excel(filename+".xlsx", index=False)
-    df.to_csv(filename+".csv", index=False)
+        # Write files
+        dir = "inventory"
+        subdir = wlc.controller_hostname
+        filename = wlc.controller_hostname + "_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + "_AP-Inventory"
+        full_path_file = os.path.join(dir, subdir, filename)
+        os.makedirs(os.path.dirname(full_path_file), exist_ok=True)
 
-print("Done!")
+        df.to_excel(full_path_file+".xlsx", index=False)
+        df.to_csv(full_path_file+".csv", index=False)
+
+logging.info(f"Done")

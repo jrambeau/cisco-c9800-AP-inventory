@@ -1,30 +1,31 @@
 # AP Inventory for Cisco C9800 WLAN Controllers
 
-## Prerequisites
+Authors: Jonathan Rambeau
+Date: 21 feb 2024
+Changelog:
+- 21 feb 2024: added .csv to .xls 
 
-Install required Python Libraries:
-```python
-pip install -r requirements.txt
-```
+## 1. Installation
 
-On the 9800 controller, enable the RESTCONF feature:
+1. Install python
+2. Check if pip is installed ``` python -m pip --version ```. If not installed, install it: https://pip.pypa.io/en/stable/installing/
+3. Install additionnal required libraries :
+    1. ```pip install -r requirements.txt```
+4. On the 9800 controller, enable the RESTCONF feature:
 ```
 configure terminal
     aaa authorization exec default local 
     ip http secure-server
         restconf
 ```
-
-Type in the IP address of the controller or controllers in file **devices_ip_list.txt**
+5. Type in the IP address of the controller or controllers in file **devices_ip_list.txt**
 ```sh
 1.2.3.4
 5.6.7.8
 ```
 
-## Run the script
+## 2. Run the script
 
-```python
-python inventory_c9800_ap.py
-```
-
-You will be prompted for username and password.
+1. From a terminal, start the script: ``` python inventory_c9800_ap.py ```
+2. You will be prompted for username and password
+3. Inventory files are exported as .csv and .xls. There are located in the 'inventory' subdirectory
