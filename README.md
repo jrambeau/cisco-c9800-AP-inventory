@@ -2,10 +2,11 @@
 
 Authors: Jonathan Rambeau
 
-Date: 21 feb 2024
+Date: 23 september 2024
 
 Changelog:
-- 21 feb 2024: added .csv to .xls 
+- 21 feb 2024: added .csv to .xls
+- 23 sept 2024: fixed an issue with 9124 AP
 
 ## 1. Installation
 
