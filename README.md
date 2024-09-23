@@ -11,9 +11,10 @@ Changelog:
 
 1. Install python
 2. Check if pip is installed ``` python -m pip --version ```. If not installed, install it: https://pip.pypa.io/en/stable/installing/
-3. Install additionnal required libraries :
+3. Upgrade pip ``` python.exe -m pip install --upgrade pip ```
+4. Install additionnal required libraries :
     1. ```pip install -r requirements.txt```
-4. On the 9800 controller, enable the RESTCONF feature:
+5. On the 9800 controller, enable the RESTCONF feature:
 ```
 configure terminal
     aaa authorization exec default local 

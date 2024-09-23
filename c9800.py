@@ -10,6 +10,7 @@ from requests.exceptions import HTTPError
 from netaddr import EUI, mac_unix_expanded
 import logging
 import sys
+import json
 
 
 class C9800:
@@ -55,14 +56,12 @@ class C9800:
         resource_hostname = "Cisco-IOS-XE-native:native/hostname"
         response_hostname = self.__execute_REST(method="GET", resource=resource_hostname)
         try:
-            logging.info(f"Parsing Hostname JSON")
             json_payload_hostname = response_hostname.json()      
             self.controller_hostname = json_payload_hostname['Cisco-IOS-XE-native:hostname']
-            logging.info(f"Hostname: {self.controller_hostname}")
         except ValueError as err:
-            logging.info(f"No data was returned")
+            logging.info(f"get_hostname function: No data was returned")
         except Exception as err:
-            logging.exception(f"Other error: {err}")
+            logging.exception(f"get_hostname function: Other error: {err}")
         
 
     def get_joined_aps(self):
@@ -76,139 +75,151 @@ class C9800:
         response_lldp = self.__execute_REST(method="GET", resource=resource_lldp)
 
         try:
-            logging.info(f"Parsing CAPWAP JSON")
+            logging.info(f"CAPWAP JSON: Parsing...")
             json_payload_capwap = response_capwap.json()
             capwap_data = json_payload_capwap['Cisco-IOS-XE-wireless-access-point-oper:capwap-data']
-            logging.info(f"Success!")
+            logging.info(f"CAPWAP JSON: Parsing success!")
         except ValueError as err:
-            logging.info(f"No data was returned")
+            logging.info(f"CAPWAP JSON: No data was returned")
         except Exception as err:
-            logging.exception(f"Other error: {err}")
+            logging.exception(f"CAPWAP JSON: Other error: {err}")
 
         try:
-            logging.info(f"Parsing Radio JSON")
+            logging.info(f"Radio JSON: Parsing...")
             json_payload_radio = response_radio.json()
             radio_oper_data = json_payload_radio['Cisco-IOS-XE-wireless-access-point-oper:radio-oper-data']
-            logging.info(f"Success!")
+            logging.info(f"Radio JSON: Parsing success!")
         except ValueError as err:
-            logging.info(f"No data was returned")
+            logging.info(f"Radio JSON: No data was returned")
         except Exception as err:
-            logging.exception(f"Other error: {err}")
+            logging.exception(f"Radio JSON: Other error: {err}")
 
         try:
-            logging.info(f"Parsing CDP JSON")
+            logging.info(f"CDP JSON: Parsing...")
             json_payload_cdp = response_cdp.json()
             cdp_data = json_payload_cdp['Cisco-IOS-XE-wireless-access-point-oper:cdp-cache-data']
-            logging.info(f"Success!")
+            logging.info(f"CDP JSON: Parsing success!")
         except ValueError as err:
-            logging.info(f"No data was returned")
+            logging.info(f"CDP JSON: No data was returned")
             cdp_data = False
         except Exception as err:
-            logging.exception(f"Other error: {err}")
+            logging.exception(f"CDP JSON: Other error: {err}")
             cdp_data = False
 
         try:
-            logging.info(f"Parsing LLDP JSON")
+            logging.info(f"LLDP JSON: Parsing...")
             json_payload_lldp = response_lldp.json()
             lldp_data = json_payload_lldp['Cisco-IOS-XE-wireless-access-point-oper:lldp-neigh']
-            logging.info(f"Success!")
+            logging.info(f"LLDP JSON: Parsing success!")
         except ValueError as err:
-            logging.info(f"No data was returned")
+            logging.info(f"LLDP JSON: No data was returned")
             lldp_data = False
         except Exception as err:
-            logging.exception(f"Other error: {err}")
+            logging.exception(f"LLDP JSON: Other error: {err}")
             lldp_data = False
 
         # Going through each Access Point
-        for x, entry in enumerate(capwap_data):
-            radio_list = {} # Reset radio_list for each new AP
-            lldp_list = {} # Reset lldp_list for each new AP
-            cdp_list = {} # Reset cdp_list for each new AP
+        try:
+            if('capwap_data' in locals() and capwap_data):
+                for x, entry in enumerate(capwap_data):
+                    radio_list = {} # Reset radio_list for each new AP
+                    lldp_list = {} # Reset lldp_list for each new AP
+                    cdp_list = {} # Reset cdp_list for each new AP
 
-            hostname = entry["name"]
-            ipaddr = entry["ip-addr"]
-            ethernet_mac = entry["device-detail"]["static-info"]["board-data"]["wtp-enet-mac"]
-            serial = entry["device-detail"]["static-info"]["board-data"]["wtp-serial-num"]
-            macwireless = entry["wtp-mac"]
-            apmodel = entry["device-detail"]["static-info"]["ap-models"]["model"]
-            tagpolicy = entry["tag-info"]["policy-tag-info"]["policy-tag-name"]
-            tagsite = entry["tag-info"]["site-tag"]["site-tag-name"]
-            tagrf = entry["tag-info"]["rf-tag"]["rf-tag-name"]
-            cc = entry["country-code"]
-            MACwireless = EUI(macwireless, dialect=mac_unix_expanded)
-            MACeth = EUI(ethernet_mac, dialect=mac_unix_expanded)
+                    hostname = entry["name"]
+                    ipaddr = entry["ip-addr"]
+                    ethernet_mac = entry["device-detail"]["static-info"]["board-data"]["wtp-enet-mac"]
+                    serial = entry["device-detail"]["static-info"]["board-data"]["wtp-serial-num"]
+                    macwireless = entry["wtp-mac"]
+                    apmodel = entry["device-detail"]["static-info"]["ap-models"]["model"]
+                    tagpolicy = entry["tag-info"]["policy-tag-info"]["policy-tag-name"]
+                    tagsite = entry["tag-info"]["site-tag"]["site-tag-name"]
+                    tagrf = entry["tag-info"]["rf-tag"]["rf-tag-name"]
+                    cc = entry["country-code"]
+                    MACwireless = EUI(macwireless, dialect=mac_unix_expanded)
+                    MACeth = EUI(ethernet_mac, dialect=mac_unix_expanded)
 
-            # Write global information on the AP
-            self.ap_list[x] = {
-                "Hostname":hostname,
-                "Model":apmodel,
-                "Serial":serial,
-                "IP_Address":ipaddr,
-                "MAC_eth":str(MACeth),
-                "MAC_wireless":str(MACwireless),
-                "Policy_Tag":tagpolicy,
-                "Site_Tag":tagsite,
-                "RF_Tag":tagrf,
-                "Country_Code":cc
-            }
+                    # Write global information on the AP
+                    self.ap_list[x] = {
+                        "Hostname":hostname,
+                        "Controller":self.controller_hostname,
+                        "Model":apmodel,
+                        "Serial":serial,
+                        "IP_Address":ipaddr,
+                        "MAC_eth":str(MACeth),
+                        "MAC_wireless":str(MACwireless),
+                        "Policy_Tag":tagpolicy,
+                        "Site_Tag":tagsite,
+                        "RF_Tag":tagrf,
+                        "Country_Code":cc
+                    }
 
-            # LLDP information
-            lldp_list.update({"LLDP_Neighbor":""})
-            lldp_list.update({"LLDP_Neighbor_IP":""})
-            lldp_list.update({"LLDP_Neighbor_Interface":""})
-            if lldp_data:
-                for lldp in lldp_data:
-                    if lldp["wtp-mac"] == macwireless:
-                        try: lldp_list.update({"LLDP_Neighbor":lldp["system-name"]})
-                        except: lldp_list.update({"LLDP_Neighbor":""})
-                        try: lldp_list.update({"LLDP_Neighbor_IP":lldp["mgmt-addr"]})
-                        except: lldp_list.update({"LLDP_Neighbor_IP":""})
-                        try: lldp_list.update({"LLDP_Neighbor_Interface":lldp["port-description"]})
-                        except: lldp_list.update({"LLDP_Neighbor_Interface":""})
-                # Write LLDP information
-                self.ap_list[x].update(lldp_list)
+                    # LLDP information
+                    lldp_list.update({"LLDP_Neighbor":""})
+                    lldp_list.update({"LLDP_Neighbor_IP":""})
+                    lldp_list.update({"LLDP_Neighbor_Interface":""})
+                    if lldp_data:
+                        for lldp in lldp_data:
+                            if lldp["wtp-mac"] == macwireless:
+                                try: lldp_list.update({"LLDP_Neighbor":lldp["system-name"]})
+                                except: lldp_list.update({"LLDP_Neighbor":""})
+                                try: lldp_list.update({"LLDP_Neighbor_IP":lldp["mgmt-addr"]})
+                                except: lldp_list.update({"LLDP_Neighbor_IP":""})
+                                try: lldp_list.update({"LLDP_Neighbor_Interface":lldp["port-description"]})
+                                except: lldp_list.update({"LLDP_Neighbor_Interface":""})
+                        # Write LLDP information
+                        self.ap_list[x].update(lldp_list)
 
-            # CDP information
-            #####
-            # Work In Progress! CDP information includes several switches. Need to filter for the right switch
-            #####
-            cdp_list.update({"CDP_Neighbor":""})
-            cdp_list.update({"CDP_Neighbor_IP":""})
-            cdp_list.update({"CDP_Neighbor_Interface":""})
-            if cdp_data:
-                for cdp in cdp_data:
-                    if cdp["wtp-mac-addr"] == macwireless:
-                        try: cdp_list.update({"CDP_Neighbor":cdp["cdp-cache-device-id"]})
-                        except: cdp_list.update({"CDP_Neighbor":""})
-                        try: cdp_list.update({"CDP_Neighbor_IP":cdp["cdp-cache-ip-address-value"]})
-                        except: 
-                            try: cdp_list.update({"CDP_Neighbor_IP":cdp["ip-address"]["ip-address-value"][0]})
-                            except: cdp_list.update({"CDP_Neighbor_IP":""})
-                        try: cdp_list.update({"CDP_Neighbor_Interface":cdp["cdp-cache-device-port"]})
-                        except: cdp_list.update({"CDP_Neighbor_Interface":""})
-                        break   # Break because CDP information can include several switches so we stop at the first one
-                # Write CDP information
-                self.ap_list[x].update(cdp_list)
+                    # CDP information
+                    #####
+                    # Work In Progress! CDP information includes several switches. Need to filter for the right switch
+                    #####
+                    cdp_list.update({"CDP_Neighbor":""})
+                    cdp_list.update({"CDP_Neighbor_IP":""})
+                    cdp_list.update({"CDP_Neighbor_Interface":""})
+                    if cdp_data:
+                        for cdp in cdp_data:
+                            if cdp["wtp-mac-addr"] == macwireless:
+                                try: cdp_list.update({"CDP_Neighbor":cdp["cdp-cache-device-id"]})
+                                except: cdp_list.update({"CDP_Neighbor":""})
+                                try: cdp_list.update({"CDP_Neighbor_IP":cdp["cdp-cache-ip-address-value"]})
+                                except: 
+                                    try: cdp_list.update({"CDP_Neighbor_IP":cdp["ip-address"]["ip-address-value"][0]})
+                                    except: cdp_list.update({"CDP_Neighbor_IP":""})
+                                try: cdp_list.update({"CDP_Neighbor_Interface":cdp["cdp-cache-device-port"]})
+                                except: cdp_list.update({"CDP_Neighbor_Interface":""})
+                                break   # Break because CDP information can include several switches so we stop at the first one
+                        # Write CDP information
+                        self.ap_list[x].update(cdp_list)
 
-            # Radios information
-            num_radio_slots = entry["device-detail"]["static-info"]["num-slots"]    # Cisco APs can have 2, 3, 4 radios
-            for radio in radio_oper_data:
-                for y in range(num_radio_slots):
-                    if radio["wtp-mac"] == macwireless:
-                        if radio["radio-slot-id"] == y:
-                                radio_list.update({
-                                    "radio"+str(y)+"_Type":radio["radio-type"],
-                                    "radio"+str(y)+"_Adminstate":radio["admin-state"],
-                                    "radio"+str(y)+"_Operstate":radio["oper-state"],
-                                    "radio"+str(y)+"_Channel":radio["phy-ht-cfg"]["cfg-data"]["curr-freq"],
-                                    "radio"+str(y)+"_Channelwidth":radio["phy-ht-cfg"]["cfg-data"]["chan-width"],
-                                    "radio"+str(y)+"_TxpowerLevel":radio["radio-band-info"][0]["phy-tx-pwr-cfg"]["cfg-data"]["current-tx-power-level"],
-                                    "radio"+str(y)+"_dBm":radio["radio-band-info"][0]["phy-tx-pwr-lvl-cfg"]["cfg-data"]["curr-tx-power-in-dbm"]
-                                })
-            # Write radios information
-            self.ap_list[x].update(radio_list)
+                    # Radios information
+                    num_radio_slots = entry["device-detail"]["static-info"]["num-slots"]    # Cisco APs can have 2, 3, 4 radios
+                    for radio in radio_oper_data:
+                        for y in range(num_radio_slots):
+                            if radio["wtp-mac"] == macwireless:
+                                if radio["radio-slot-id"] == y:
+                                    if radio.get("admin-state"): # Permet de gérer le cas où la radio existe mais n'est pas disponible dans l'API (exemple 9124D slot 2)
+                                        radio_list.update({
+                                            "radio"+str(y)+"_Type":radio["radio-type"],
+                                            "radio"+str(y)+"_Adminstate":radio["admin-state"],
+                                            "radio"+str(y)+"_Operstate":radio["oper-state"],
+                                            "radio"+str(y)+"_Channel":radio["phy-ht-cfg"]["cfg-data"]["curr-freq"],
+                                            "radio"+str(y)+"_Channelwidth":radio["phy-ht-cfg"]["cfg-data"]["chan-width"],
+                                            "radio"+str(y)+"_TxpowerLevel":radio["radio-band-info"][0]["phy-tx-pwr-cfg"]["cfg-data"]["current-tx-power-level"],
+                                            "radio"+str(y)+"_dBm":radio["radio-band-info"][0]["phy-tx-pwr-lvl-cfg"]["cfg-data"]["curr-tx-power-in-dbm"]
+                                        })
+                    # Write radios information
+                    self.ap_list[x].update(radio_list)
+                logging.info(f"{len(self.ap_list)} APs joined on controller "+self.controller_hostname)
+            else:
+                logging.info("No AP are joined on controller "+self.controller_hostname)
+                return self==0
 
-        logging.info(f"Success! {len(self.ap_list)} APs joined")
+        except ValueError as err:
+            logging.info(f"No data was returned")
+        except Exception as err:
+            logging.exception(f"Other error: {err}")
+
 
         return self.ap_list
 
@@ -244,3 +255,33 @@ class C9800:
         resource = "/Cisco-IOS-XE-wireless-ap-cfg:ap-cfg-data/ap-tags/ap-tag/"
         response = self.__execute_REST(method="PATCH", resource=resource, payload=payload)
         return response
+
+    # Recupération de la configuration en API. NON FONCTIONNEL, utiliser le script netmiko
+    """
+    def get_configuration(self):
+        logging.info(f"Getting running-configuration")
+        url = f"https://{self.controller_ip}/restconf/operations/cli"
+        headers = {
+            "Content-Type": "application/yang-data+json",
+            "Accept": "application/yang-data+json"
+        }
+        payload = {
+            "input": {
+                "cli": "show running-config"
+            }
+        }
+        response = requests.post(
+            url,
+            headers=headers,
+            data=json.dumps(payload),
+            auth=self.controller_auth,
+            verify=False  # Si vous utilisez un certificat auto-signé, désactivez la vérification SSL
+        )
+        # Vérifier si la requête a réussi
+        if response.status_code == 200:
+            # Extraire la configuration depuis la réponse JSON
+            result = response.json()
+            return result["output"]["cli"]
+        else:
+            print(f"Erreur {response.status_code}: {response.text}")
+    """
