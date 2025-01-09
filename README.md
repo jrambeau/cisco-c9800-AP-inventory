@@ -2,7 +2,7 @@
 
 This Python script connects to one or several Cisco Catalyst 9800 controllers and uses different RESTCONF API calls to export a comprehensive Access Points inventory file (csv and xls) containing models, IP address, MAC, LLDP/CDP neighbors information, radio status, etc...
 
-![screenshot](misc/c9800-ap-inventory-screenshot01.png)
+![screenshot](c9800-ap-inventory-screenshot01.png)
 
 Authors: Jonathan Rambeau
 
