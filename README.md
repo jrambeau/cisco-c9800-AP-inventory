@@ -26,7 +26,7 @@ configure terminal
     ip http secure-server
         restconf
 ```
-5. Type in the IP address of the controller or controllers in file **devices_ip_list.txt**
+6. Type in the IP address of the controller or controllers in file **devices_ip_list.txt**
 ```sh
 1.2.3.4
 5.6.7.8
