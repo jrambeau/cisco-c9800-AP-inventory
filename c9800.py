@@ -132,6 +132,7 @@ class C9800:
                     serial = entry["device-detail"]["static-info"]["board-data"]["wtp-serial-num"]
                     macwireless = entry["wtp-mac"]
                     apmodel = entry["device-detail"]["static-info"]["ap-models"]["model"]
+                    location = entry["ap-location"]["location"]
                     tagpolicy = entry["tag-info"]["policy-tag-info"]["policy-tag-name"]
                     tagsite = entry["tag-info"]["site-tag"]["site-tag-name"]
                     tagrf = entry["tag-info"]["rf-tag"]["rf-tag-name"]
@@ -144,6 +145,7 @@ class C9800:
                         "Hostname":hostname,
                         "Controller":self.controller_hostname,
                         "Model":apmodel,
+                        "Location":location,
                         "Serial":serial,
                         "IP_Address":ipaddr,
                         "MAC_eth":str(MACeth),
@@ -194,21 +196,25 @@ class C9800:
 
                     # Radios information
                     num_radio_slots = entry["device-detail"]["static-info"]["num-slots"]    # Cisco APs can have 2, 3, 4 radios
-                    for radio in radio_oper_data:
-                        for y in range(num_radio_slots):
-                            if radio["wtp-mac"] == macwireless:
-                                if radio["radio-slot-id"] == y:
-                                    if radio.get("admin-state"): # Permet de gérer le cas où la radio existe mais n'est pas disponible dans l'API (exemple 9124D slot 2)
-                                        radio_list.update({
-                                            "radio"+str(y)+"_Type":radio["radio-type"],
-                                            "radio"+str(y)+"_Adminstate":radio["admin-state"],
-                                            "radio"+str(y)+"_Operstate":radio["oper-state"],
-                                            "radio"+str(y)+"_Channel":radio["phy-ht-cfg"]["cfg-data"]["curr-freq"],
-                                            "radio"+str(y)+"_Channelwidth":radio["phy-ht-cfg"]["cfg-data"]["chan-width"],
-                                            "radio"+str(y)+"_TxpowerLevel":radio["radio-band-info"][0]["phy-tx-pwr-cfg"]["cfg-data"]["current-tx-power-level"],
-                                            "radio"+str(y)+"_dBm":radio["radio-band-info"][0]["phy-tx-pwr-lvl-cfg"]["cfg-data"]["curr-tx-power-in-dbm"]
-                                        })
-                    # Write radios information
+                    try:
+                        for radio in radio_oper_data:
+                            for y in range(num_radio_slots):
+                                if radio["wtp-mac"] == macwireless:
+                                    if radio["radio-slot-id"] == y:
+                                        if radio.get("admin-state"): # Permet de gérer le cas où la radio existe mais n'est pas disponible dans l'API (exemple 9124D slot 2)
+                                            radio_list.update({
+                                                "radio"+str(y)+"_Type":radio["radio-type"],
+                                                "radio"+str(y)+"_Adminstate":radio["admin-state"],
+                                                "radio"+str(y)+"_Operstate":radio["oper-state"],
+                                                "radio"+str(y)+"_Channel":radio["phy-ht-cfg"]["cfg-data"]["curr-freq"],
+                                                "radio"+str(y)+"_Channelwidth":radio["phy-ht-cfg"]["cfg-data"]["chan-width"],
+                                                "radio"+str(y)+"_TxpowerLevel":radio["radio-band-info"][0]["phy-tx-pwr-cfg"]["cfg-data"]["current-tx-power-level"],
+                                                "radio"+str(y)+"_dBm":radio["radio-band-info"][0]["phy-tx-pwr-lvl-cfg"]["cfg-data"]["curr-tx-power-in-dbm"]
+                                            })
+                        # Write radios information
+                    except Exception as err:
+                        logging.exception(f"Error reading RADIO informations: {err}")  
+                        continue
                     self.ap_list[x].update(radio_list)
                 logging.info(f"{len(self.ap_list)} APs joined on controller "+self.controller_hostname)
             else:

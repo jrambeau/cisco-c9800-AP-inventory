@@ -25,6 +25,7 @@ un = input('Username: ')
 pw = getpass.getpass()
 
 devices = [] # Empty array to store controllers
+all_dataframes = [] # List to store all dataframes for concatenation
 
 for ip in iplist:
     # Create an object of type C9800 and store it in the wlc variable
@@ -51,6 +52,8 @@ for wlc in devices:
         df.to_excel(full_path_file+".xlsx", index=False)
         df.to_csv(full_path_file+".csv", index=False)
 
+        all_dataframes.append(df)
+
     # Recupération de la configuration en API. NON FONCTIONNEL, utiliser le script netmiko
     """
     # Get running-configuration
@@ -65,5 +68,15 @@ for wlc in devices:
     with open(full_path_file, "w") as file:
         file.write(config)
     """
+
+# Export consolidated inventory for all controllers
+if all_dataframes:
+    df_all = pd.concat(all_dataframes, ignore_index=True)
+    all_filename = "all-controllers-" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    all_path = os.path.join("inventory", all_filename)
+    os.makedirs("inventory", exist_ok=True)
+    df_all.to_csv(all_path + ".csv", index=False)
+    df_all.to_excel(all_path + ".xlsx", index=False)
+    logging.info(f"Consolidated inventory exported: {all_path}.csv and {all_path}.xlsx ({len(df_all)} APs total)")
 
 logging.info(f"Done")

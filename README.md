@@ -1,20 +1,17 @@
 # AP Inventory for Cisco C9800 WLAN Controllers
 
-This Python script connects to one or several Cisco Catalyst 9800 controllers and uses different RESTCONF API calls to export a comprehensive Access Points inventory file (csv and xls) containing models, IP address, MAC, LLDP/CDP neighbors information, radio status, etc...
+This Python script connects to one or several Cisco Catalyst 9800 WLAN controllers and uses different RESTCONF API calls to export a comprehensive Access Points inventory file (csv and xls) containing models, IP address, MAC addresses, LLDP/CDP neighbors information, radio status, etc...
 
 ![screenshot](c9800-ap-inventory-screenshot01.png)
-
-Authors: Jonathan Rambeau
-
-Date: 23 september 2024
 
 Changelog:
 - 21 feb 2024: added .csv to .xls
 - 23 sept 2024: fixed an issue with 9124 AP
+- 17 march 2026: added all-controllers inventory at the root of inventory/
 
 ## 1. Installation
 
-1. Install python
+1. Install python3
 2. Check if pip is installed ``` python -m pip --version ```. If not installed, install it: https://pip.pypa.io/en/stable/installing/
 3. Upgrade pip ``` python.exe -m pip install --upgrade pip ```
 4. Install additionnal required libraries :
