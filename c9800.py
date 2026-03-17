@@ -230,6 +230,121 @@ class C9800:
         return self.ap_list
 
 
+    def get_connected_clients(self):
+        base = "Cisco-IOS-XE-wireless-client-oper:client-oper-data"
+        resource_common = f"{base}/common-oper-data"
+        resource_dot11 = f"{base}/dot11-oper-data"
+        resource_traffic = f"{base}/traffic-stats"
+        resource_sisf = f"{base}/sisf-db-mac"
+        resource_policy = f"{base}/policy-data"
+
+        response_common = self.__execute_REST(method="GET", resource=resource_common)
+        response_dot11 = self.__execute_REST(method="GET", resource=resource_dot11)
+        response_traffic = self.__execute_REST(method="GET", resource=resource_traffic)
+        response_sisf = self.__execute_REST(method="GET", resource=resource_sisf)
+        response_policy = self.__execute_REST(method="GET", resource=resource_policy)
+
+        common_data = []
+        dot11_data = []
+        traffic_data = []
+        sisf_data = []
+        policy_data = []
+
+        try:
+            logging.info("Client common-oper-data: Parsing...")
+            common_data = response_common.json().get("Cisco-IOS-XE-wireless-client-oper:common-oper-data", [])
+            logging.info(f"Client common-oper-data: {len(common_data)} entries")
+        except Exception as err:
+            logging.info(f"Client common-oper-data: No data or error: {err}")
+
+        try:
+            logging.info("Client dot11-oper-data: Parsing...")
+            dot11_data = response_dot11.json().get("Cisco-IOS-XE-wireless-client-oper:dot11-oper-data", [])
+            logging.info(f"Client dot11-oper-data: {len(dot11_data)} entries")
+        except Exception as err:
+            logging.info(f"Client dot11-oper-data: No data or error: {err}")
+
+        try:
+            logging.info("Client traffic-stats: Parsing...")
+            traffic_data = response_traffic.json().get("Cisco-IOS-XE-wireless-client-oper:traffic-stats", [])
+            logging.info(f"Client traffic-stats: {len(traffic_data)} entries")
+        except Exception as err:
+            logging.info(f"Client traffic-stats: No data or error: {err}")
+
+        try:
+            logging.info("Client sisf-db-mac: Parsing...")
+            sisf_data = response_sisf.json().get("Cisco-IOS-XE-wireless-client-oper:sisf-db-mac", [])
+            logging.info(f"Client sisf-db-mac: {len(sisf_data)} entries")
+        except Exception as err:
+            logging.info(f"Client sisf-db-mac: No data or error: {err}")
+
+        try:
+            logging.info("Client policy-data: Parsing...")
+            policy_data = response_policy.json().get("Cisco-IOS-XE-wireless-client-oper:policy-data", [])
+            logging.info(f"Client policy-data: {len(policy_data)} entries")
+        except Exception as err:
+            logging.info(f"Client policy-data: No data or error: {err}")
+
+        if not common_data:
+            logging.info(f"No clients connected on controller {self.controller_hostname}")
+            return 0
+
+        # Index supplementary data by MAC for fast lookup
+        dot11_by_mac = {entry.get("ms-mac-address", ""): entry for entry in dot11_data}
+        traffic_by_mac = {entry.get("ms-mac-address", ""): entry for entry in traffic_data}
+        policy_by_mac = {entry.get("mac", ""): entry for entry in policy_data}
+
+        # sisf: extract first IPv4 address per MAC
+        sisf_by_mac = {}
+        for entry in sisf_data:
+            mac = entry.get("mac-addr", "")
+            ipv4 = ""
+            ipv4_bindings = entry.get("ipv4-binding", [])
+            if ipv4_bindings:
+                # API may return a dict (single binding) or a list
+                if isinstance(ipv4_bindings, dict):
+                    ipv4_bindings = [ipv4_bindings]
+                ipv4 = ipv4_bindings[0].get("ip-key", {}).get("ip-addr", "")
+            sisf_by_mac[mac] = ipv4
+
+        client_list = {}
+        for idx, client in enumerate(common_data):
+            mac = client.get("client-mac", "")
+            mac_formatted = str(EUI(mac, dialect=mac_unix_expanded)) if mac else ""
+
+            dot11 = dot11_by_mac.get(mac, {})
+            traffic = traffic_by_mac.get(mac, {})
+            policy = policy_by_mac.get(mac, {})
+            ip_addr = sisf_by_mac.get(mac, "")
+
+            client_list[idx] = {
+                "Client_MAC": mac_formatted,
+                "Controller": self.controller_hostname,
+                "Client_IP": ip_addr,
+                "Username": client.get("username", ""),
+                "AP_Name": client.get("ap-name", ""),
+                "State": client.get("co-state", ""),
+                "WLAN_ID": client.get("wlan-id", ""),
+                "SSID": dot11.get("vap-ssid", ""),
+                "Radio_Type": client.get("ms-radio-type", ""),
+                "Protocol": dot11.get("ewlc-ms-phy-type", ""),
+                "Channel": dot11.get("current-channel", ""),
+                "VLAN_ID": policy.get("res-vlan-id", ""),
+                "VLAN_Name": policy.get("res-vlan-name", ""),
+                "RSSI": traffic.get("most-recent-rssi", ""),
+                "SNR": traffic.get("most-recent-snr", ""),
+                "Speed": traffic.get("speed", ""),
+                "Bytes_RX": traffic.get("bytes-rx", ""),
+                "Bytes_TX": traffic.get("bytes-tx", ""),
+                "Pkts_RX": traffic.get("pkts-rx", ""),
+                "Pkts_TX": traffic.get("pkts-tx", ""),
+                "Data_Retries": traffic.get("data-retries", ""),
+            }
+
+        logging.info(f"{len(client_list)} clients connected on controller {self.controller_hostname}")
+        return client_list
+
+
     def get_site_tags(self):
         resource = "Cisco-IOS-XE-wireless-site-cfg:site-cfg-data/site-tag-configs/site-tag-config"
 
